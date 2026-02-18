@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
+            margin: 0;
+        }
+        canvas {
+            border: 2px solid white;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pacman" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('pacman');
+        const context = canvas.getContext('2d');
+        const pacSize = 40;
+        let pacX = canvas.width / 2 - pacSize / 2;
+        let pacY = canvas.height / 2 - pacSize / 2;
+
+        function drawPacMan() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = 'yellow';
+            context.beginPath();
+            context.arc(pacX + pacSize / 2, pacY + pacSize / 2, pacSize / 2, 0.2 * Math.PI, 1.8 * Math.PI);
+            context.lineTo(pacX + pacSize / 2, pacY + pacSize / 2);
+            context.fill();
+        }
+
+        function update() {
+            drawPacMan();
+            pacX += 1;
+            if (pacX > canvas.width) {
+                pacX = -pacSize;
+            }
+            requestAnimationFrame(update);
+        }
+
+        update();
+    </script>
+</body>
+</html>
