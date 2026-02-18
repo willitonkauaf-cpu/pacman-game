@@ -1,51 +1,530 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pac-Man Game</title>
+    <title>Pac-Man Game - Jogue Agora!</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: black;
-            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
         }
-        canvas {
-            border: 2px solid white;
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .stat-value {
+            color: #667eea;
+            font-size: 1.5em;
+            display: block;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: #000;
+            border: 3px solid #667eea;
+            margin: 20px auto;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .controls {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .controls p {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .arrow-keys {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .arrow-key {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .arrow-key:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        #startBtn {
+            background: #667eea;
+            color: white;
+        }
+
+        #startBtn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #resetBtn {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        #resetBtn:hover {
+            background: #ee5a52;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        #gameStatus {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+        }
+
+        #gameStatus.playing {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        #gameStatus.gameover {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        #gameStatus.won {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .instructions {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+            text-align: left;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .instructions h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .instructions li {
+            margin: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .instructions li:before {
+            content: "▶";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            #gameCanvas {
+                width: 100%;
+                height: auto;
+            }
         }
     </style>
 </head>
 <body>
-    <canvas id="pacman" width="400" height="400"></canvas>
+    <div class="container">
+        <h1>🎮 PAC-MAN</h1>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Pontuação</span>
+                <span class="stat-value" id="score">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Vidas</span>
+                <span class="stat-value" id="lives">3</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Nível</span>
+                <span class="stat-value" id="level">1</span>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+        <div class="controls">
+            <p>Use as setas do teclado ou botões abaixo para se mover</p>
+            <div class="arrow-keys">
+                <button class="arrow-key" onclick="pacman.moveUp()">⬆️</button>
+            </div>
+            <div class="arrow-keys" style="justify-content: center; gap: 10px;">
+                <button class="arrow-key" onclick="pacman.moveLeft()">⬅️</button>
+                <button class="arrow-key" onclick="pacman.moveDown()">⬇️</button>
+                <button class="arrow-key" onclick="pacman.moveRight()">➡️</button>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button id="startBtn" onclick="startGame()">Iniciar Jogo</button>
+            <button id="resetBtn" onclick="resetGame()">Reiniciar</button>
+        </div>
+
+        <div id="gameStatus"></div>
+
+        <div class="instructions">
+            <h3>📋 Como Jogar</h3>
+            <ul>
+                <li>🟡 Coma todos os pontos brancos</li>
+                <li>👻 Desvie dos fantasmas</li>
+                <li>⭐ Passe de nível comendo todos os pontos</li>
+                <li>❤️ Você tem 3 vidas</li>
+            </ul>
+        </div>
+    </div>
+
     <script>
-        const canvas = document.getElementById('pacman');
-        const context = canvas.getContext('2d');
-        const pacSize = 40;
-        let pacX = canvas.width / 2 - pacSize / 2;
-        let pacY = canvas.height / 2 - pacSize / 2;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const livesEl = document.getElementById('lives');
+        const levelEl = document.getElementById('level');
+        const statusEl = document.getElementById('gameStatus');
+        const startBtn = document.getElementById('startBtn');
 
-        function drawPacMan() {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.fillStyle = 'yellow';
-            context.beginPath();
-            context.arc(pacX + pacSize / 2, pacY + pacSize / 2, pacSize / 2, 0.2 * Math.PI, 1.8 * Math.PI);
-            context.lineTo(pacX + pacSize / 2, pacY + pacSize / 2);
-            context.fill();
-        }
+        let gameRunning = false;
+        let gameOver = false;
 
-        function update() {
-            drawPacMan();
-            pacX += 1;
-            if (pacX > canvas.width) {
-                pacX = -pacSize;
+        const pacman = {
+            x: 200,
+            y: 200,
+            radius: 8,
+            vx: 0,
+            vy: 0,
+            speed: 2,
+            mouthOpen: true,
+
+            moveUp() { this.vy = -this.speed; this.vx = 0; },
+            moveDown() { this.vy = this.speed; this.vx = 0; },
+            moveLeft() { this.vx = -this.speed; this.vy = 0; },
+            moveRight() { this.vx = this.speed; this.vy = 0; },
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x - this.radius < 0) this.x = this.radius;
+                if (this.x + this.radius > canvas.width) this.x = canvas.width - this.radius;
+                if (this.y - this.radius < 0) this.y = this.radius;
+                if (this.y + this.radius > canvas.height) this.y = canvas.height - this.radius;
+            },
+
+            draw() {
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0.2 * Math.PI, 1.8 * Math.PI);
+                ctx.lineTo(this.x, this.y);
+                ctx.fill();
             }
-            requestAnimationFrame(update);
+        };
+
+        let ghosts = [];
+        let pellets = [];
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+
+        class Ghost {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.radius = 8;
+                this.color = color;
+                this.speed = 1 + (level * 0.3);
+                this.vx = Math.random() * 2 - 1;
+                this.vy = Math.random() * 2 - 1;
+            }
+
+            update() {
+                const dx = pacman.x - this.x;
+                const dy = pacman.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 100) {
+                    this.vx = (dx / distance) * this.speed;
+                    this.vy = (dy / distance) * this.speed;
+                } else {
+                    if (Math.random() < 0.02) {
+                        this.vx = Math.random() * 2 - 1;
+                        this.vy = Math.random() * 2 - 1;
+                    }
+                }
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x - this.radius < 0) this.x = this.radius;
+                if (this.x + this.radius > canvas.width) this.x = canvas.width - this.radius;
+                if (this.y - this.radius < 0) this.y = this.radius;
+                if (this.y + this.radius > canvas.height) this.y = canvas.height - this.radius;
+
+                this.checkCollision();
+            }
+
+            checkCollision() {
+                const dx = this.x - pacman.x;
+                const dy = this.y - pacman.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < this.radius + pacman.radius) {
+                    lives--;
+                    livesEl.innerText = lives;
+                    if (lives <= 0) {
+                        endGame();
+                    } else {
+                        resetPositions();
+                    }
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(this.x - 3, this.y - 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(this.x + 3, this.y - 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
 
-        update();
+        function createPellets() {
+            pellets = [];
+            const pelletCount = 50 + (level * 10);
+            for (let i = 0; i < pelletCount; i++) {
+                pellets.push({
+                    x: Math.random() * (canvas.width - 20) + 10,
+                    y: Math.random() * (canvas.height - 20) + 10,
+                    radius: 2
+                });
+            }
+        }
+
+        function createGhosts() {
+            ghosts = [];
+            const ghostColors = ['#FF0000', '#FFB6C1', '#00FFFF', '#FFB347'];
+            const numGhosts = 1 + level;
+            for (let i = 0; i < numGhosts && i < ghostColors.length; i++) {
+                ghosts.push(new Ghost(
+                    Math.random() * (canvas.width - 40) + 20,
+                    Math.random() * (canvas.height - 40) + 20,
+                    ghostColors[i]
+                ));
+            }
+        }
+
+        function startGame() {
+            gameRunning = true;
+            gameOver = false;
+            statusEl.className = 'playing';
+            statusEl.innerText = '▶️ Jogo em andamento...';
+            startBtn.disabled = true;
+            gameLoop();
+        }
+
+        function resetPositions() {
+            pacman.x = 200;
+            pacman.y = 200;
+            pacman.vx = 0;
+            pacman.vy = 0;
+        }
+
+        function resetGame() {
+            score = 0;
+            lives = 3;
+            level = 1;
+            scoreEl.innerText = score;
+            livesEl.innerText = lives;
+            levelEl.innerText = level;
+            gameRunning = false;
+            gameOver = false;
+            statusEl.className = '';
+            statusEl.innerText = '';
+            startBtn.disabled = false;
+            resetPositions();
+            createPellets();
+            createGhosts();
+            draw();
+        }
+
+        function checkPellets() {
+            for (let i = pellets.length - 1; i >= 0; i--) {
+                const dx = pacman.x - pellets[i].x;
+                const dy = pacman.y - pellets[i].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < pacman.radius + pellets[i].radius) {
+                    pellets.splice(i, 1);
+                    score += 10;
+                    scoreEl.innerText = score;
+                }
+            }
+
+            if (pellets.length === 0 && gameRunning) {
+                level++;
+                levelEl.innerText = level;
+                createPellets();
+                createGhosts();
+                resetPositions();
+                statusEl.innerText = '⭐ Parabéns! Você avançou de nível!';
+            }
+        }
+
+        function endGame() {
+            gameRunning = false;
+            gameOver = true;
+            statusEl.className = 'gameover';
+            statusEl.innerText = `💀 Game Over! Pontuação Final: ${score}`;
+            startBtn.disabled = false;
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            pellets.forEach(pellet => {
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(pellet.x, pellet.y, pellet.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            pacman.draw();
+            ghosts.forEach(ghost => ghost.draw());
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            pacman.update();
+            ghosts.forEach(ghost => ghost.update());
+            checkPellets();
+            draw();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            if (e.key === 'ArrowUp') pacman.moveUp();
+            if (e.key === 'ArrowDown') pacman.moveDown();
+            if (e.key === 'ArrowLeft') pacman.moveLeft();
+            if (e.key === 'ArrowRight') pacman.moveRight();
+        });
+
+        // Inicialização
+        createPellets();
+        createGhosts();
+        draw();
     </script>
 </body>
 </html>
